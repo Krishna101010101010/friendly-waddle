@@ -1,6 +1,7 @@
 # Online Retail: Preprocessing, Data Warehouse, OLAP & Churn Prediction — Analysis
 
 **Source Notebook:** [`online-retail-preprocessing-data-warehouse-olap.ipynb`](./online-retail-preprocessing-data-warehouse-olap.ipynb)  
+**Official Kaggle Notebook:** [Online Retail: Preprocessing, Data Warehouse, OLAP](https://www.kaggle.com/code/krishnatheachiever/online-retail-preprocessing-data-warehouse-olap)  
 **Dataset Archive:** [`data.csv.zip`](./data.csv.zip) (`data.csv`)  
 **Notebook Author:** Krishna  
 

@@ -56,6 +56,8 @@ This notebook implements an end-to-end retail analytics and machine learning pip
   > **Local Execution Note:** The workspace currently contains `data.csv.zip`. Unzip it to `data.csv` (or point `DATA_PATH` to the extracted file) before running the notebook locally.
 - Profiles shape, data types, summary statistics, duplicates (`5,268`), and missingness (`CustomerID` 24.93%, `Description` 0.27%).
 
+![Missing values by column (%)](images/01_missing_values.png)
+
 ### Section 3: Cleaning & Cancellation Netting
 1. **Deduplication & Typing:** Drops `5,268` exact duplicate rows (`536,641` rows remaining). Parses `InvoiceDate`, casts `CustomerID` to nullable `Int64`, uppercases/strips `StockCode`, and assigns each `StockCode` its single most frequent `Description` (mode).
 2. **Non-Product Filtering:** Keeps only SKUs matching `^\d{5}` or `DCGS*` (excluding `ebay` / `unknown product` descriptions). Removes operational/accounting codes such as `POST` (1,256 rows), `DOT` (710), `M` (567), `C2` (144), `D` (77), `S` (62), `BANK CHARGES` (37), `AMAZONFEE` (34), `CRUK` (16), gift vouchers (`GIFT_0001_*`), `PADS`, and `B` (bad debt).
@@ -71,6 +73,8 @@ This notebook implements an end-to-end retail analytics and machine learning pip
   - `UnitPrice`: bounds `[-3.07, 8.45]` → **35,289** flagged rows
   - `Quantity`: bounds `[-14.00, 26.00]` → **26,653** flagged rows
 - Visualizes both distributions using log-scale boxplots.
+
+![UnitPrice and Quantity log-scale boxplots](images/02_outlier_boxplots.png)
 
 ### Section 5: Data Warehouse (Star Schema)
 Builds and validates a Star Schema at the **invoice line-item grain**:
@@ -96,9 +100,16 @@ Demonstrates core multidimensional cube operations on `fact_sales` joined with `
 ### Section 7: Sales Analysis
 Generates four exploratory visualizations:
 1. **Monthly Net Revenue Trend** (annotating `2011-12` as partial).
-2. **Top 10 Products by Revenue.**
-3. **Top 10 Countries Outside the UK by Revenue.**
-4. **Invoices by Weekday and Hour Heatmap.**
+
+![Monthly net revenue](images/03_monthly_net_revenue.png)
+
+2. **Top 10 Products by Revenue** & **Top 10 Countries Outside the UK by Revenue.**
+
+![Top 10 products and top 10 non-UK countries](images/04_top_products_and_countries.png)
+
+3. **Invoices by Weekday and Hour Heatmap.**
+
+![Invoices by weekday and hour](images/05_invoices_weekday_hour_heatmap.png)
 
 ### Section 8: Customer Analysis
 1. **RFM Scoring (`1`–`5` quintiles via `rank(pct=True)`):**
@@ -107,8 +118,16 @@ Generates four exploratory visualizations:
    - **At Risk:** 755 customers | Avg Recency 154.4d | Avg Freq 3.2 | Revenue `855,259.5`
    - **Hibernating or Occasional:** 1,266 customers | Avg Recency 183.4d | Avg Freq 1.0 | Revenue `464,476.7`
    - **New or Promising:** 236 customers | Avg Recency 19.4d | Avg Freq 1.0 | Revenue `74,916.8`
+
+![Customers per RFM segment](images/06_rfm_segments.png)
+
 2. **K-Means Clustering:** Applies `log1p` + `StandardScaler` to `(Recency, Frequency, Monetary)`, evaluates silhouette scores for `k = 2..8`, and selects `K = 4` for actionable segmentation (Cluster sizes: `0`: 1,183, `1`: 1,599, `2`: 846, `3`: 696; Cluster 3 represents high-value VIPs with median Monetary `3,610.62`, Frequency `10`, Recency `9` days).
+
+![Silhouette score by number of clusters](images/07_kmeans_silhouette.png)
+
 3. **Cohort Retention:** Monthly acquisition cohort matrix showing percentage of returning customers over `MonthsSince` first purchase.
+
+![Cohort retention heatmap](images/08_cohort_retention_heatmap.png)
 
 ### Section 9: Market Basket Analysis
 - Uses a `scipy.sparse.csr_matrix` co-occurrence computation over the **top 200 most frequent products** (`StockCode` by unique invoices).
@@ -130,6 +149,10 @@ Generates four exploratory visualizations:
 
 - **Diagnostics & Validation:**
   - Plots Confusion Matrix, ROC curves, and Permutation Importance (`n_repeats=20` on `roc_auc`).
+
+![Confusion matrix and ROC curves](images/09_confusion_matrix_and_roc.png)
+
+![Permutation importance (drop in ROC-AUC)](images/10_permutation_importance.png)
   - **Out-of-Time Check (Section 10.1):** Trains on an earlier 90-day cutoff (`2,814` customers) and evaluates on the final cutoff (`3,363` customers), achieving **0.7434 ROC-AUC** and **0.6711 Accuracy**.
   - **Out-of-Fold Scoring:** Uses `cross_val_predict` to assign unbiased `ChurnProbability` scores and flags top-25% revenue customers at highest risk.
 
